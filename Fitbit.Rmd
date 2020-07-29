@@ -1,0 +1,53 @@
+---
+title: "Fitbit Analysis"
+author: "DBisure"
+date: "29/07/2020"
+output: html_document
+---
+
+# Executive Summary
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+# Downloading the data
+The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har.
+
+```{r}
+url <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+download.file(url,destfile = "pml-training.csv")
+url <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+download.file(url,destfile = "pml-testing.csv")
+```
+
+#Reading and pre-processing the data
+The data has a lot of NA values. We need to remove columns with all NA values
+```{r}
+trainSet <- read.csv("pml-training.csv", na.strings=c("NA","#DIV/0!", ""))
+testSet <- read.csv("pml-testing.csv", na.strings=c("NA","#DIV/0!", ""))
+trainSet<-trainSet[,colSums(is.na(trainSet)) == 0]
+testSet<-testSet[,colSums(is.na(testSet)) == 0]
+trainSet<-trainSet[,-c(1:7)]
+testSet <-testSet[,-c(1:7)]
+dim(trainSet)
+```
+There were originally 160 columns, now only 53 are left. Column 1-7 contained data which we do not require
+
+# Partioning Training Set
+For cross validation we will split the training set into training and test set with prob= 0.75
+```{r}
+library(caret)
+library(lattice)
+library(ggplot2)
+set.seed(123)
+inTrain <- createDataPartition(y=trainSet$classe, p=0.75, list=FALSE)
+trainTrainingSet <- trainSet[inTrain, ] 
+testTrainingSet <- trainSet[-inTrain, ]
+dim(trainTrainingSet)
+```
+
+#Plot classe against frequency
+
+```{r}
+g <- ggplot(data= trainTrainingSet, aes(x = classe)) + geom_bar(color="darkblue", fill="lightblue") + ggtitle("Distribution of classe in training set")
+g
+```
