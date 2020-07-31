@@ -19,7 +19,7 @@ url <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
 download.file(url,destfile = "pml-testing.csv")
 ```
 
-#Reading and pre-processing the data
+## Reading and pre-processing the data
 The data has a lot of NA values. We need to remove columns with all NA values
 ```{r}
 trainSet <- read.csv("pml-training.csv", na.strings=c("NA","#DIV/0!", ""))
@@ -45,9 +45,39 @@ testTrainingSet <- trainSet[-inTrain, ]
 dim(trainTrainingSet)
 ```
 
-#Plot classe against frequency
+# Plot classe against frequency
 
 ```{r}
 g <- ggplot(data= trainTrainingSet, aes(x = classe)) + geom_bar(color="darkblue", fill="lightblue") + ggtitle("Distribution of classe in training set")
 g
+```
+
+# Using decision tree 
+
+```{r}
+library(rpart)
+model1 <- rpart(classe ~ ., data=trainTrainingSet, method="class")
+prediction1 <- predict(model1, testTrainingSet, type = "class")
+confusionMatrix(prediction1, testTrainingSet$classe)
+```
+
+We can see using decision tree we get an accuracy of only 73.76% on the validation set
+
+# Using random forest 
+
+```{r}
+library(randomForest)
+
+model2 <- randomForest(classe ~. , data=trainTrainingSet, method="class")
+prediction2 <- predict(model2, testTrainingSet, type = "class")
+confusionMatrix(prediction2, testTrainingSet$classe)
+
+```
+We see a significant rise in accuracy of 99.6%. Hence we will be using random Forest model for final test set
+
+# Prediction on Final test set
+
+```{r}
+predictFinal <- predict(model2, testSet, type="class")
+predictFinal
 ```
